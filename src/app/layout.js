@@ -1,6 +1,7 @@
 import "./globals.css";
 import Image from "next/image";
 import React from "react";
+import Link from "next/link"; 
 
 export const metadata = {
   title: "AI HR Toolkit",
@@ -22,7 +23,7 @@ export default function RootLayout({ children }) {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <div className="flex items-center justify-between">
                 {/* Link to home with a normal anchor or Next's Link component */}
-                <a href="/" className="flex items-center">
+                <Link href="/" className="flex items-center">
                 <Image
                   src="/logo.svg" // Path to your logo in /public folder
                   alt="AI HR Toolkit Logo"
