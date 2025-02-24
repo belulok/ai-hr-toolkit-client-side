@@ -18,6 +18,8 @@ import {
   Link as LinkIcon
 } from 'lucide-react';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 // -----------------------------------------
 // NO CHANGES in these existing components:
 // ResumeDetails, LoadingState, SkillBar, RecommendationCard
@@ -160,6 +162,8 @@ function JobMatcherPage() {
   const [jobURL, setJobURL] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [matchResult, setMatchResult] = useState(null);
+  const [jobStructuredData, setJobStructuredData] = useState(null); // new state for extracted job info
+  const [jobId, setJobId] = useState(null); // new state for extracted job info
 
   const handleResumeUpload = async (event) => {
     const file = event.target.files?.[0];
@@ -169,7 +173,7 @@ function JobMatcherPage() {
         const formData = new FormData();
         formData.append('resume', file);
 
-        const res = await fetch('http://127.0.0.1:5001/upload_resume', {
+        const res = await fetch(`${API_BASE_URL}/upload_resume`, {
           method: 'POST',
           body: formData,
         });
@@ -192,19 +196,21 @@ function JobMatcherPage() {
 
     try {
       // Upload job by URL
-      const jobRes = await fetch('http://127.0.0.1:5001/upload_job_by_url', {
+      const jobRes = await fetch(`${API_BASE_URL}/upload_job_by_url`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ job_url: jobURL }),
       });
       const jobData = await jobRes.json();
-
+      
       if (!jobRes.ok) {
         throw new Error(jobData.error || 'Error processing job URL.');
       }
+      
+      setJobStructuredData(jobData.structured_data); // store in state
 
       // Then match
-      const matchRes = await fetch(`http://127.0.0.1:5001/match/${jobData.job_id}`);
+      const matchRes = await fetch(`${API_BASE_URL}/match/${jobData.job_id}`);
       const matchData = await matchRes.json();
 
       if (!matchRes.ok) {
@@ -305,12 +311,12 @@ function JobMatcherPage() {
                     type="url"
                     value={jobURL}
                     onChange={(e) => setJobURL(e.target.value)}
-                    className="block w-full pl-10 rounded-xl bg-gray-900/30 border-gray-800 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500/20 text-gray-200"
+                    className="block w-full pl-10 h-10 rounded-xl bg-gray-700/30 border-gray-800 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500/20 text-gray-200"
                     placeholder="Paste the job posting URL here..."
                     required
                   />
                 </div>
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-sm text-gray-300">
                   Paste the URL of the job posting you want to analyze
                 </p>
               </div>
@@ -334,6 +340,31 @@ function JobMatcherPage() {
                 )}
               </button>
             </form>
+
+            {jobStructuredData && (
+              <div className="bg-black/30 backdrop-blur-sm rounded-xl p-6 border border-gray-800 text-gray-300 my-5">
+                <h3 className="text-lg font-semibold text-white mb-4">Extracted Job Info</h3>
+                <p><strong>Website:</strong> {jobStructuredData.website_name}</p>
+                <p><strong>Title:</strong> {jobStructuredData.job_title}</p>
+                <p><strong>Company:</strong> {jobStructuredData.company}</p>
+                <p><strong>Experience Required:</strong> {jobStructuredData.experience_required}</p>
+                <p><strong>Education:</strong> {jobStructuredData.education}</p>
+
+                <strong>Skills Required:</strong>
+                {jobStructuredData.skills_required?.length ? (
+                  <ul className="list-disc list-inside">
+                    {jobStructuredData.skills_required.map((skill) => (
+                      <li key={skill}>{skill}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <span>None</span>
+                )}
+                <p className="mt-2">
+                  <strong>Role Description:</strong> {jobStructuredData.role_description}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
