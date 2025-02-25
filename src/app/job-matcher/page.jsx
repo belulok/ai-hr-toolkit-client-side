@@ -18,7 +18,7 @@ import {
   Link as LinkIcon
 } from 'lucide-react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://159.65.7.160';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://159.65.7.160';
 
 // -----------------------------------------
 // NO CHANGES in these existing components:
